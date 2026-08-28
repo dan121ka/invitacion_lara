@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>¡Lara cumple 7 años!</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Inter:wght@400;600;700;800&display=swap');
+
+  :root{
+    --sky-top:#5EC1E8;
+    --sky-bottom:#BDEBFF;
+    --grass-light:#6FBF3A;
+    --grass-dark:#4F8F28;
+    --dirt:#8B5A2B;
+    --dirt-dark:#6B4423;
+    --wood:#8B5A2B;
+    --wood-dark:#5A3A1E;
+    --stone:#8B8B8B;
+    --stone-dark:#5C5C5C;
+    --gold:#FFD54F;
+    --ink:#2A1E14;
+    --paper:#FBF3DE;
+    font-family:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0;
+    padding:0;
+    background:#3A6B22;
+    width:100%;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  body{
+    padding-top:env(safe-area-inset-top);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .pixel-font{font-family:'Press Start 2P', monospace; line-height:1.6;}
+  .mono-font{font-family:'VT323', monospace;}
+
+  img,canvas{image-rendering:pixelated;}
+
+  /* ACCESIBILIDAD */
+  [role="button"]:focus-visible {
+    outline: 3px dashed var(--gold);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  /* ---------- INTRO ---------- */
+  #intro{
+    position:fixed; inset:0; z-index:50;
+    background:linear-gradient(180deg, var(--sky-top), var(--sky-bottom) 70%);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:28px; padding:24px; text-align:center;
+    transition:opacity .6s ease, transform .6s ease;
+  }
+  #intro.hide{opacity:0; transform:scale(1.1); pointer-events:none;}
+  #intro h1{
+    color:#fff; font-size:clamp(16px, 5vw, 22px);
+    text-shadow:3px 3px 0 #2c6b1f;
+    margin:0; letter-spacing:1px;
+  }
+  #grassBlock{
+    width:min(45vw,180px);
+    cursor:pointer;
+    filter:drop-shadow(4px 6px 0 rgba(0,0,0,.25));
+    animation:bob 2.2s ease-in-out infinite;
+  }
+  #grassBlock.breaking{animation:breakBlock .5s ease forwards;}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  @keyframes breakBlock{
+    0%{transform:scale(1); opacity:1;}
+    40%{transform:scale(1.15) rotate(-6deg);}
+    100%{transform:scale(0) rotate(20deg); opacity:0;}
+  }
+  
+  #intro p{
+    color: #ffffff; 
+    font-size: 18px; 
+    margin: 0; 
+    max-width: 280px;
+    text-shadow: 2px 2px 0 var(--ink);
+    line-height: 1.2;
+  }
+
+  /* ---------- MAIN (RESPONSIVE PARA MÓVILES) ---------- */
+  #main{
+    opacity:0; 
+    transition:opacity .8s ease;
+    width: 100%;
+    max-width: 480px; 
+    margin: 0 auto; 
+    position: relative;
+    min-height: 100vh;
+    background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 280px, #ECE0BF 280px, #ECE0BF 100%);
+    overflow: hidden; 
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+  }
+  #main.show{opacity:1;}
+
+  /* PERSONAJES ASOMÁNDOSE */
+  .peeking-char {
+    position: absolute;
+    z-index: 5;
+    animation: peekBob 3s ease-in-out infinite;
+  }
+  .peeking-left {
+    width: 150px;
+    left: -65px;
+    bottom: 180px;
+  }
+  .peeking-right {
+    width: 100px;
+    right: -30px;
+    top: 220px;
+  }
+
+  /* LOBO REUBICADO Y MÁS GRANDE */
+  .peeking-wolf {
+    width: 165px;
+    right: -25px;
+    top: 480px;
+    left: auto;
+    bottom: auto;
+    z-index: 15;
+  }
+
+  @keyframes peekBob {
+    0%, 100% { transform: translateY(0) rotate(var(--rot)); }
+    50% { transform: translateY(-8px) rotate(var(--rot)); }
+  }
+
+  /* SOL Y DIAMANTE */
+  .sun{
+    position:absolute; top:25px; right:25px; width:48px; height:48px;
+    background:var(--gold);
+    box-shadow: 0 0 0 6px rgba(255,213,79,.4), 0 0 0 12px rgba(255,213,79,.15);
+    animation: pulseSun 2.5s ease-in-out infinite alternate;
+  }
+  @keyframes pulseSun {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(255,213,79,.5), 0 0 0 16px rgba(255,213,79,.2); }
+  }
+  
+  .floating-diamond {
+    position: absolute;
+    width: 65px;
+    left: 15px;
+    top: 85px;
+    z-index: 25;
+    animation: floatItem 3s ease-in-out infinite;
+    filter: drop-shadow(3px 3px 0 rgba(0,0,0,0.2));
+  }
+  @keyframes floatItem {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  /* NUBES ESTILO MINECRAFT */
+  .cloud{
+    position:absolute; background:#fff; opacity:.9;
+    box-shadow: 15px -10px 0 #fff, 30px 5px 0 #fff, -10px 10px 0 #fff;
+  }
+  .drift{animation:drift linear infinite;}
+  @keyframes drift{from{transform:translateX(-80px)}to{transform:translateX(100vw)}}
+
+  header.hero{position:relative; padding:45px 16px 25px; text-align:center;}
+  .eyebrow{
+    display:inline-block; background:var(--ink); color:var(--gold);
+    font-family:'Press Start 2P',monospace; font-size:9px; padding:8px 10px;
+    border-radius:2px; margin-bottom:18px; letter-spacing:1px;
+  }
+  .title-block{
+    background:var(--paper);
+    border:4px solid var(--ink);
+    box-shadow:6px 6px 0 var(--ink);
+    padding:18px 14px;
+    margin:0 6px 25px;
+    position: relative;
+    z-index: 10;
+  }
+  .title-block h1{
+    font-family:'Press Start 2P',monospace;
+    font-size:clamp(22px,7vw,32px);
+    color:#2f6b22;
+    text-shadow:3px 3px 0 #FFD54F;
+    margin:0 0 10px;
+    word-break:break-word;
+  }
+  .title-block .sub{
+    font-family:'VT323',monospace;
+    font-size:24px; color:var(--ink);
+  }
+
+  /* COUNTDOWN */
+  .countdown{
+    display:flex; justify-content:center; gap:8px; padding:0 12px 25px;
+    flex-wrap:wrap; min-height: 80px; align-items: center;
+    position: relative; z-index: 10;
+  }
+  .count-slot{
+    background:var(--stone); border:3px solid var(--ink);
+    box-shadow:3px 3px 0 var(--ink);
+    width:64px; padding:10px 2px; text-align:center; color:#fff;
+  }
+  .count-slot .num{font-family:'Press Start 2P',monospace; font-size:16px;}
+  .count-slot .lbl{font-family:'VT323',monospace; font-size:13px; letter-spacing:1px;}
+
+  .time-up-msg {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 15px;
+    color: #fff;
+    text-shadow: 2px 2px 0 var(--ink);
+    text-align: center;
+    line-height: 1.8;
+    background: #a5312e;
+    padding: 15px;
+    border: 3px solid var(--ink);
+    box-shadow: 4px 4px 0 var(--ink);
+    animation: pop .4s ease;
+  }
+
+  /* CRAFTING SECTION */
+  section.craft{padding:10px 16px 30px; text-align:center;}
+  section.craft h2{
+    font-family:'Press Start 2P',monospace; font-size:14px; color:var(--ink);
+    margin-bottom:6px;
+  }
+  section.craft .hint{font-family:'VT323',monospace; font-size:19px; color:#4a3a26; margin-bottom:18px;}
+
+  .grid3{
+    background:var(--wood); border:5px solid var(--wood-dark);
+    box-shadow:5px 5px 0 var(--ink);
+    display:grid; grid-template-columns:repeat(2,1fr); gap:10px;
+    padding:16px; max-width:280px; margin:0 auto;
+    position: relative; z-index: 10;
+  }
+  .slot{
+    background:#c9a06a; border:3px solid var(--wood-dark);
+    aspect-ratio:1/1; display:flex; align-items:center; justify-content:center;
+    position:relative; cursor:pointer; padding:10px;
+    transition:transform .15s ease;
+  }
+  .slot:active{transform:scale(.92);}
+  .slot.done{background:#e8d6ad; cursor:default;}
+  .slot .icon{width:60%;}
+  .slot .check{
+    position:absolute; top:-6px; right:-6px; background:#3fae4d; color:#fff;
+    font-family:'Press Start 2P',monospace; font-size:9px; width:20px;height:20px;
+    display:flex;align-items:center;justify-content:center; border:2px solid var(--ink);
+    opacity:0; transform:scale(0); transition:all .3s ease;
+  }
+  .slot.done .check{opacity:1; transform:scale(1);}
+
+  .progress-wrap{max-width:280px; margin:16px auto 0; background:#00000030; border:2px solid var(--ink); height:16px;}
+  .progress-bar{height:100%; width:0%; background:var(--gold); transition:width .4s ease;}
+  .progress-txt{font-family:'VT323',monospace; font-size:16px; margin-top:6px; color:var(--ink);}
+
+  .detail-card{
+    max-width:300px; margin:16px auto 0; background:var(--paper);
+    border:3px solid var(--ink); box-shadow:4px 4px 0 var(--ink);
+    padding:14px; text-align:left; display:none; animation:pop .3s ease;
+    position: relative; z-index: 10;
+  }
+  .detail-card.show{display:block;}
+  @keyframes pop{from{transform:scale(.85); opacity:0;}to{transform:scale(1); opacity:1;}}
+  .detail-card .k{font-family:'Press Start 2P',monospace; font-size:11px; color:#2f6b22; margin-bottom:6px;}
+  .detail-card .v{font-family:'VT323',monospace; font-size:20px; color:var(--ink);}
+
+  /* BOTÓN DEL MAPA */
+  .map-btn {
+    display: inline-block;
+    background: #5EC1E8;
+    color: var(--ink);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    text-decoration: none;
+    padding: 10px 12px;
+    border: 3px solid var(--ink);
+    box-shadow: 3px 3px 0 var(--ink);
+    transition: transform .15s ease, box-shadow .15s ease;
+    margin-top: 12px;
+  }
+  .map-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--ink);
+  }
+
+  /* UNLOCK / CAKE */
+  #unlock{
+    max-width:300px; margin:26px auto 0; text-align:center; opacity:0; height:0; overflow:hidden;
+    transition:opacity .5s ease; position: relative; z-index: 10;
+  }
+  #unlock.show{opacity:1; height:auto; overflow:visible;}
+  
+  #cake{width:110px; margin:0 auto 15px; position:relative; z-index:2; filter:drop-shadow(3px 4px 0 rgba(0,0,0,0.2));}
+  
+  #unlock h3{font-family:'Press Start 2P',monospace; font-size:14px; color:#a5312e; position:relative; z-index:2; line-height: 1.4;}
+  #unlock p {position:relative; z-index:2; margin: 12px 0 20px; color: var(--ink);}
+
+  .rsvp-btn{
+    display:inline-block; background:#3fae4d; color:#fff;
+    font-family:'Press Start 2P',monospace; font-size:12px; text-decoration:none;
+    padding:16px 18px; border:3px solid var(--ink); box-shadow:4px 4px 0 var(--ink);
+    transition:transform .15s ease; position:relative; z-index:2;
+  }
+  .rsvp-btn:active{transform:translate(2px,2px); box-shadow:2px 2px 0 var(--ink);}
+
+  footer{
+    text-align:center; padding:26px 20px 44px; font-family:'VT323',monospace;
+    font-size:18px; color:#4a3a26; background:#ECE0BF; position: relative; z-index: 10;
+  }
+  footer .addr-edit{color:#a5312e; font-weight:bold;}
+
+  @media (prefers-reduced-motion: reduce){
+    #grassBlock, .drift, .sun, .peeking-char, .floating-diamond{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+<!-- REPRODUCTOR DE MÚSICA -->
+<audio id="bgMusic" loop>
+  <source src="musica.mp3" type="audio/mpeg">
+</audio>
+
+<!-- INTRO -->
+<div id="intro">
+  <h1 class="pixel-font">¡SE BUSCA<br>UN JUGADOR!</h1>
+  <div style="position:relative;">
+    <svg id="grassBlock" viewBox="0 0 8 8" role="button" tabindex="0" onclick="breakBlock()" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); breakBlock(); }"></svg>
+  </div>
+  <p class="mono-font">Toca el bloque para comenzar la aventura</p>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- PERSONAJES -->
+  <img src="alex.png" alt="Alex" class="peeking-char peeking-left" style="--rot: 20deg;">
+  <img src="steve.png" alt="Steve" class="peeking-char peeking-right" style="--rot: -18deg;">
+  <img src="lobo.png" alt="Lobo" class="peeking-char peeking-wolf" style="--rot: -10deg;">
+  <img src="diamante.png" alt="Diamante" class="floating-diamond">
+
+  <!-- Paisaje -->
+  <div class="sun"></div>
+  <div class="cloud drift" style="top:70px; left:-50px; width:50px; height:18px; animation-duration:22s;"></div>
+  <div class="cloud drift" style="top:130px; left:-20px; width:40px; height:14px; animation-duration:30s; animation-delay:-10s;"></div>
+
+  <header class="hero">
+    <span class="eyebrow">INVITACIÓN ESPECIAL</span>
+    <div class="title-block">
+      <h1>LARA</h1>
+      <div class="sub">¡cumple 7 años!</div>
+    </div>
+  </header>
+
+  <!-- Contador de Tiempo -->
+  <div class="countdown" id="countdown">
+    <div class="count-slot"><div class="num" id="cd-d">00</div><div class="lbl">días</div></div>
+    <div class="count-slot"><div class="num" id="cd-h">00</div><div class="lbl">hrs</div></div>
+    <div class="count-slot"><div class="num" id="cd-m">00</div><div class="lbl">min</div></div>
+    <div class="count-slot"><div class="num" id="cd-s">00</div><div class="lbl">seg</div></div>
+  </div>
+
+  <section class="craft">
+    <h2>ARMA LA INVITACIÓN</h2>
+    <p class="hint">Toca cada casilla para descubrir los detalles</p>
+
+    <div class="grid3" id="craftGrid">
+      <div class="slot" data-key="fecha" role="button" tabindex="0" onclick="craft(this,'fecha')" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); craft(this,'fecha'); }">
+        <svg class="icon" viewBox="0 0 8 8" data-pattern="torch"></svg>
+        <div class="check">✓</div>
+      </div>
+      <div class="slot" data-key="hora" role="button" tabindex="0" onclick="craft(this,'hora')" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); craft(this,'hora'); }">
+        <svg class="icon" viewBox="0 0 8 8" data-pattern="clock"></svg>
+        <div class="check">✓</div>
+      </div>
+      <div class="slot" data-key="lugar" role="button" tabindex="0" onclick="craft(this,'lugar')" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); craft(this,'lugar'); }">
+        <svg class="icon" viewBox="0 0 8 8" data-pattern="chest"></svg>
+        <div class="check">✓</div>
+      </div>
+      <div class="slot" data-key="rsvp" role="button" tabindex="0" onclick="craft(this,'rsvp')" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); craft(this,'rsvp'); }">
+        <svg class="icon" viewBox="0 0 8 8" data-pattern="heart"></svg>
+        <div class="check">✓</div>
+      </div>
+    </div>
+
+    <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="progress-txt" id="progressTxt">0/4 objetos obtenidos</div>
+
+    <div class="detail-card" id="card-fecha">
+      <div class="k">📅 FECHA</div>
+      <div class="v">Domingo 30 de agosto</div>
+    </div>
+    <div class="detail-card" id="card-hora">
+      <div class="k">⏰ HORA</div>
+      <div class="v">3:00 de la tarde</div>
+    </div>
+    
+    <div class="detail-card" id="card-lugar">
+      <div class="k">📍 LUGAR</div>
+      <div class="v">
+        Domicilio de la familia<br>
+        <a href="https://maps.app.goo.gl/SMXfVi2e9g8AXJo9A" target="_blank" rel="noopener" class="map-btn">🗺️ VER EN EL MAPA</a>
+      </div>
+    </div>
+    
+    <div class="detail-card" id="card-rsvp">
+      <div class="k">💬 CONFIRMAR ASISTENCIA</div>
+      <div class="v">Escribe al 77440108</div>
+    </div>
+
+    <!-- Sección de Desbloqueo y Torta -->
+    <div id="unlock">
+      <svg id="cake" viewBox="0 0 11 11"></svg>
+      <h3 class="pixel-font">¡FIESTA<br>DESBLOQUEADA!</h3>
+      <p class="mono-font" style="font-size:20px;">¡Prepárate para una tarde llena de diversión al estilo Minecraft! 🎮</p>
+      <a class="rsvp-btn" id="whatsappBtn" href="#" target="_blank" rel="noopener">CONFIRMAR AHORA</a>
+    </div>
+  </section>
+
+  <footer>
+    Con mucho cariño te esperamos para celebrar a Lara <br>
+    <span class="addr-edit">Con el amor de sus papás: Lizeth y Vidal</span>
+  </footer>
+</div>
+
+<script>
+/* ---------- PIXEL ART RENDERER ---------- */
+function renderPixel(svg, pattern, colors){
+  const rows = pattern.length, cols = pattern[0].length;
+  svg.setAttribute('viewBox', `0 0 ${cols} ${rows}`);
+  svg.innerHTML='';
+  const ns='http://www.w3.org/2000/svg';
+  for(let y=0;y<rows;y++){
+    for(let x=0;x<cols;x++){
+      const ch = pattern[y][x];
+      if(ch==='.') continue;
+      const rect = document.createElementNS(ns,'rect');
+      rect.setAttribute('x',x); rect.setAttribute('y',y);
+      rect.setAttribute('width',1); rect.setAttribute('height',1);
+      rect.setAttribute('fill', colors[ch]);
+      svg.appendChild(rect);
+    }
+  }
+}
+
+const PATTERNS = {
+  grass:{
+    pattern:["GgGgGgGg","gGgGgGgG","DdDdDdDd","dDdDdDdD","DdDdDdDd","dDdDdDdD","DdDdDdDd","dDdDdDdD"],
+    colors:{G:'#6FBF3A',g:'#4F8F28',D:'#8B5A2B',d:'#6B4423'}
+  },
+  torch:{
+    pattern:["...YY...","..YOOY..","..OOOO..","...BB...","...BB...","...BB...","...BB...","........"],
+    colors:{Y:'#FFD54F',O:'#FF9800',B:'#6B4423'}
+  },
+  clock:{
+    pattern:["..GGGG..",".GWWWWG.","GWWWWWWG","GWWBWWWG","GWWBWWWG","GWWWWWWG",".GWWWWG.","..GGGG.."],
+    colors:{G:'#5C5C5C',W:'#FFFFFF',B:'#2A2A2A'}
+  },
+  chest:{
+    pattern:["........",".BBBBBB.","BwwwwwwB","BwwGGwwB","BwwLLwwB","BwwwwwwB",".BBBBBB.","........"],
+    colors:{B:'#3D2817',w:'#8B5A2B',G:'#FFD54F',L:'#4A3520'}
+  },
+  heart:{
+    pattern:[".RR.RR..","RRRRRRR.","RRRRRRR.","RRRRRRR.",".RRRRR..","..RRR...","...R....","........"],
+    colors:{R:'#E85A6B'}
+  },
+  cake:{
+    pattern:[
+      ".....N.....",
+      ".....Y.....",
+      "....www....",
+      "..wwwwwww..",
+      "..wcccccw..",
+      "..PPPPPPP..",
+      "..PPPPPPP..",
+      "..PPPPPPP..",
+      "..PPPPPPP..",
+      "..........."
+    ],
+    colors:{N:'#FF5722', Y:'#FFD54F', w:'#FFFFFF', c:'#D94F4F', P:'#E8A0B0'}
+  }
+};
+
+document.querySelectorAll('.icon').forEach(svg=>{
+  const p = PATTERNS[svg.dataset.pattern];
+  renderPixel(svg, p.pattern, p.colors);
+});
+renderPixel(document.getElementById('grassBlock'), PATTERNS.grass.pattern, PATTERNS.grass.colors);
+renderPixel(document.getElementById('cake'), PATTERNS.cake.pattern, PATTERNS.cake.colors);
+
+/* ---------- SOUND ---------- */
+let audioCtx;
+function blip(freq=440){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type='square'; o.frequency.value=freq;
+    g.gain.setValueAtTime(0.06, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.18);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime+0.18);
+  }catch(e){}
+}
+
+/* ---------- INTRO -> MAIN ---------- */
+function breakBlock(){
+  const block = document.getElementById('grassBlock');
+  block.classList.add('breaking');
+  
+  const musica = document.getElementById('bgMusic');
+  musica.volume = 0.4; 
+  musica.play().catch(e => console.log("Audio bloqueado por el navegador", e));
+
+  blip(200);
+  spawnParticles();
+  
+  setTimeout(()=>{
+    document.getElementById('intro').classList.add('hide');
+    document.getElementById('main').classList.add('show');
+  }, 420);
+}
+
+function spawnParticles(){
+  const intro = document.getElementById('intro');
+  for(let i=0;i<10;i++){
+    const p = document.createElement('div');
+    p.style.position='fixed';
+    p.style.left = (window.innerWidth/2 + (Math.random()-0.5)*80)+'px';
+    p.style.top = (window.innerHeight/2 + (Math.random()-0.5)*80)+'px';
+    p.style.width='8px'; p.style.height='8px';
+    p.style.background = Math.random()>0.5 ? '#6FBF3A' : '#8B5A2B';
+    p.style.zIndex = 60;
+    p.style.transition='all .6s ease';
+    intro.appendChild(p);
+    requestAnimationFrame(()=>{
+      p.style.transform = `translate(${(Math.random()-0.5)*160}px, ${(Math.random()-0.5)*160}px) rotate(180deg)`;
+      p.style.opacity='0';
+    });
+    setTimeout(()=>p.remove(),650);
+  }
+}
+
+/* ---------- CONFETTI ANIMATION ---------- */
+function spawnConfetti(){
+  const unlockZone = document.getElementById('unlock');
+  const colors = ['#FFD54F', '#E85A6B', '#5EC1E8', '#6FBF3A', '#FFFFFF'];
+  for(let i=0; i<35; i++){
+    const p = document.createElement('div');
+    p.style.position='absolute';
+    p.style.left = '50%';
+    p.style.top = '30px';
+    p.style.width = '6px';
+    p.style.height = '6px';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.zIndex = 1;
+    p.style.transition = 'all 1.2s cubic-bezier(0.1, 0.8, 0.3, 1)';
+    unlockZone.appendChild(p);
+    
+    requestAnimationFrame(()=>{
+      const x = (Math.random()-0.5) * 300;
+      const y = (Math.random()-0.5) * 200 - 50;
+      p.style.transform = `translate(${x}px, ${y}px) rotate(${Math.random()*360}deg)`;
+      p.style.opacity='0';
+    });
+    setTimeout(()=>p.remove(), 1200);
+  }
+}
+
+/* ---------- COUNTDOWN ---------- */
+const target = new Date("2026-08-30T15:00:00-04:00").getTime();
+let timerInterval;
+
+function tick(){
+  const now = Date.now();
+  let diff = target - now;
+  
+  const cdElement = document.getElementById('countdown');
+  
+  if(diff <= 0) {
+    cdElement.innerHTML = '<div class="time-up-msg">¡YA ES HORA!<br><br>¡Ven a la fiesta!</div>';
+    clearInterval(timerInterval);
+    return;
+  }
+  
+  const d = Math.floor(diff/86400000);
+  const h = Math.floor((diff%86400000)/3600000);
+  const m = Math.floor((diff%3600000)/60000);
+  const s = Math.floor((diff%60000)/1000);
+  
+  document.getElementById('cd-d').textContent = String(d).padStart(2,'0');
+  document.getElementById('cd-h').textContent = String(h).padStart(2,'0');
+  document.getElementById('cd-m').textContent = String(m).padStart(2,'0');
+  document.getElementById('cd-s').textContent = String(s).padStart(2,'0');
+}
+tick(); 
+timerInterval = setInterval(tick, 1000);
+
+/* ---------- CRAFTING ---------- */
+let crafted = 0;
+const total = 4;
+function craft(el, key){
+  if(el.classList.contains('done')) return;
+  el.classList.add('done');
+  blip(500 + crafted*80);
+  crafted++;
+  document.getElementById('progressBar').style.width = (crafted/total*100)+'%';
+  document.getElementById('progressTxt').textContent = crafted+'/'+total+' objetos obtenidos';
+  const card = document.getElementById('card-'+key);
+  card.classList.add('show');
+  
+  if(crafted === total){
+    setTimeout(()=>{
+      document.getElementById('unlock').classList.add('show');
+      spawnConfetti();
+      blip(700); setTimeout(()=>blip(900),150);
+    }, 300);
+  }
+}
+
+/* ---------- WHATSAPP LINK ---------- */
+const msg = encodeURIComponent("¡Hola! Confirmo mi asistencia a la fiesta de Lara el domingo 30 de agosto a las 3pm.");
+document.getElementById('whatsappBtn').href = `https://wa.me/59177440108?text=${msg}`;
+</script>
+</body>
+</html>
